@@ -1,0 +1,42 @@
+{
+    "name": "juniorb2ss/tibia-parser",
+    "description": "Librarie to help crawler information in tibia.com",
+    "require": {
+        "php" : "~5.6|~7.0",
+        "fabpot/goutte": "^3.2",
+        "nesbot/carbon": "^1.22",
+        "waavi/sanitizer": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0||~5.0",
+        "squizlabs/php_codesniffer": "^2.3",
+        "mockery/mockery": "dev-master@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "juniorb2ss\\TibiaParser\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "juniorb2ss\\TibiaParser\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "coverage": "phpunit --coverage-text --coverage-clover=coverage.clover",
+        "check-style": "phpcs -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests",
+        "fix-style": "phpcbf -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests",
+        "build": "composer run check-style && composer run fix-style && composer run test && composer run coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Carlos Eduardo",
+            "email": "juniorb2ss@gmail.com"
+        }
+    ]
+}
