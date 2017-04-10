@@ -11,7 +11,6 @@ class TibiaParser
 {
     /**
      * [getCrawler description]
-     * @codeCoverageIgnore
      * @return juniorb2ss\TibiaParser\Crawlers\Crawler
      */
     protected function getCrawler()
@@ -21,7 +20,6 @@ class TibiaParser
 
     /**
      * [player description]
-     * @codeCoverageIgnore
      * @return \juniorb2ss\TibiaParser\Crawlers\PlayerCrawler
      */
     public function player()

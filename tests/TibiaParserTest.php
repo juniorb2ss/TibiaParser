@@ -20,30 +20,30 @@ use Mockery;
 */
 class TibiaParserTest extends TestCase
 {
-	public function setUp()
-	{
-		$this->tibia = new TibiaParser;
-	}
+    public function setUp()
+    {
+        $this->tibia = new TibiaParser;
+    }
 
-	public function testGetCrawlerMethod()
-	{
-		$method = $this->getProtectedMethod(
-			TibiaParser::class,
-			null,
-			'getCrawler'
-		);
+    public function testGetCrawlerMethod()
+    {
+        $method = $this->getProtectedMethod(
+            TibiaParser::class,
+            null,
+            'getCrawler'
+        );
 
-		$this->assertInstanceOf(
-			CrawlerInterface::class, 
-			$method->invoke($this->tibia)
-		);
-	}
+        $this->assertInstanceOf(
+            CrawlerInterface::class,
+            $method->invoke($this->tibia)
+        );
+    }
 
-	public function testPlayerMethod()
-	{
-		$this->assertInstanceOf(
-			PlayerCrawlerInterface::class, 
-			$this->tibia->player()
-		);
-	}
+    public function testPlayerMethod()
+    {
+        $this->assertInstanceOf(
+            PlayerCrawlerInterface::class,
+            $this->tibia->player()
+        );
+    }
 }
