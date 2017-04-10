@@ -7,6 +7,8 @@ use Goutte\Client;
 use juniorb2ss\TibiaParser\Contracts\PlayerCrawlerInterface;
 use juniorb2ss\TibiaParser\Crawlers\Crawler;
 use Waavi\Sanitizer\Sanitizer;
+use juniorb2ss\TibiaParser\Contracts\CrawlerInterface;
+use Carbon\Carbon;
 
 /**
 *
@@ -22,15 +24,45 @@ class PlayerCrawler implements PlayerCrawlerInterface
 
     /**
      * [__construct description]
-     * @param Crawler $crawler [description]
+     * @codeCoverageIgnore
+     * @param \juniorb2ss\TibiaParser\Contracts\CrawlerInterface $crawler [description]
      */
-    public function __construct(Crawler $crawler, $playerName)
+    public function __construct(CrawlerInterface $crawler)
     {
         $this->crawler = $crawler;
+    }
 
-        $this->bodyCrawled = $this->makeRequest($playerName);
+    /**
+     * [getPlayer description]
+     * @param  [type]  $playerName [description]
+     * @param  boolean $force      [description]
+     * @return [type]              [description]
+     */
+    public function getPlayer($playerName, $force = false)
+    {
+        if (empty($this->bodyCrawled) || $force === true) {
+            $this->bodyCrawled = $this->makeRequest($playerName);
+        }
 
-        $this->getPlayer($playerName);
+        return $this;
+    }
+
+    /**
+     * [setCrawlerInstance description]
+     * @param CrawlerInterface $crawler [description]
+     */
+    public function setCrawlerInstance(CrawlerInterface $crawler)
+    {
+        $this->crawler = $crawler;
+    }
+
+    /**
+     * [getCrawlerInstance description]
+     * @return CrawlerInterface [description]
+     */
+    public function getCrawlerInstance()
+    {
+        return $this->crawler;
     }
 
     /**
@@ -88,36 +120,75 @@ class PlayerCrawler implements PlayerCrawlerInterface
 
     /**
      * [makeRequest description]
-     * @param  [type] $name [description]
-     * @return [type]       [description]
+     * @param  [type] $playerName [description]
+     * @return [type]             [description]
      */
-    public function makeRequest($name)
+    public function makeRequest($playerName)
     {
         $client = $scrap = $this->crawler->getClient();
-        $crawler = $client->request($this->method, sprintf($this->url, $name));
+        $crawler = $client->request($this->method, sprintf($this->url, $playerName));
 
         return $crawler;
     }
 
     /**
-     * [getPlayer description]
-     * @param  [type] $name [description]
-     * @return [type]       [description]
+     * [getAllInformationsFromPlayer description]
+     * @return [type] [description]
      */
-    protected function getPlayer($name)
+    public function getAllInformationsFromPlayer()
     {
         foreach ($this->xPaths as $attribute => $xPath) {
             $node = $this->bodyCrawled->filterXPath(
                 $xPath
             );
 
-            $this->scraping[$attribute] = str_replace('&nbsp;', ' ', htmlentities($node->text(), null, 'utf-8'));
+            $this->scraping[$attribute] = null;
+
+            if ($node->count()) {
+                $this->scraping[$attribute] = str_replace('&nbsp;', ' ', htmlentities($node->text(), null, 'utf-8'));
+            }
         }
 
         $sanitizer  = new Sanitizer($this->scraping, $this->filters);
         $this->scraping = $sanitizer->sanitize();
 
         return $this;
+    }
+
+    /**
+     * [getScraping description]
+     * @param  [type] $scrap [description]
+     * @return string
+     */
+    public function getScraping($scrap)
+    {
+        return $this->hasScrap($scrap) ? $this->scraping[$scrap] : null;
+    }
+
+    /**
+     * [hasScrap description]
+     * @param  [type]  $scrap [description]
+     * @return boolean        [description]
+     */
+    public function hasScrap($scrap)
+    {
+        return isset($this->scraping[$scrap]) && !empty($this->scraping[$scrap]);
+    }
+
+    /**
+     * [getPlayerLastLogin description]
+     * @codeCoverageIgnore
+     * @return Carbon|Null
+     */
+    public function getPlayerLastLogin()
+    {
+        if ($this->hasScrap('last_login')) {
+            return Carbon::parse(
+                $this->getScraping('last_login')
+            );
+        }
+
+        return null;
     }
 
     /**

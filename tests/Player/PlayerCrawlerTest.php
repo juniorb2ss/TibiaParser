@@ -11,7 +11,9 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Client as GuzzleClient;
+use juniorb2ss\TibiaParser\Contracts\CrawlerInterface;
 use Mockery;
+use Carbon\Carbon;
 
 /**
 *
@@ -21,10 +23,32 @@ class PlayerCrawlerTest extends TestCase
    
     protected $history;
 
+    protected $stubFile = __DIR__ . '/../stubs/player.html';
+
+    public function setUp()
+    {
+        $crawlerMock  = Mockery::mock(Crawler::class)
+                        ->makePartial()
+                        ->shouldReceive('getGuzzleClient')
+                        ->andReturn($this->getMockGuzzle())
+                        ->getMock();
+
+        $tibiaParserMock = Mockery::mock(TibiaParser::class)->makePartial();
+        
+        $playerCrawlerMock = Mockery::mock(PlayerCrawler::class, array($crawlerMock))->makePartial();
+
+        $tibiaParserMock
+            ->shouldReceive('player')
+            ->andReturn($playerCrawlerMock);
+
+        $this->tibia = $tibiaParserMock;
+        $this->player = $tibiaParserMock->player();
+    }
+
     protected function getMockGuzzle(array $responses = [])
     {
         if (empty($responses)) {
-            $responses = [new GuzzleResponse(200, [], file_get_contents(__DIR__ . '/../stubs/player.html'))];
+            $responses = [new GuzzleResponse(200, [], file_get_contents($this->stubFile))];
         }
         
         $mock = new MockHandler($responses);
@@ -35,24 +59,30 @@ class PlayerCrawlerTest extends TestCase
         return $guzzle;
     }
 
-    public function tearDown()
+    public function testPlayerHasLastLogin()
     {
-        Mockery::close();
+        $player = $this->player
+            ->getPlayer('Themacho')
+            ->getAllInformationsFromPlayer();
+            
+        $this->assertInstanceOf(
+            Carbon::class,
+            $player->getPlayerLastLogin()
+        );
+    }
+
+    public function testSetCrawler()
+    {
+        $crawler = new Crawler;
+
+        $this->player->setCrawlerInstance($crawler);
+
+        $this->assertInstanceOf(CrawlerInterface::class, $this->player->getCrawlerInstance());
     }
 
     public function testPlayerInformation()
     {
         $playerName = 'Themacho';
-
-        $crawlerMock  = Mockery::mock(Crawler::class)->makePartial();
-        $tibiaParserMock = Mockery::mock(TibiaParser::class)->makePartial();
-
-        $mockGuzzle = $this->getMockGuzzle();
-        $crawlerMock->shouldReceive('getGuzzleClient')->andReturn($mockGuzzle);
-        $tibiaParserMock->shouldReceive('getCrawler')->andReturn(
-            $crawlerMock
-        );
-
         $expectedInformations = [
             'name' => $playerName,
             'sex' => 'male',
@@ -67,7 +97,9 @@ class PlayerCrawlerTest extends TestCase
             'account_status' => 'Premium Account'
         ];
 
-        $player = $tibiaParserMock->player($playerName);
+        $player = $this->player
+            ->getPlayer('Themacho')
+            ->getAllInformationsFromPlayer();
 
         $this->assertEquals(
             $expectedInformations,

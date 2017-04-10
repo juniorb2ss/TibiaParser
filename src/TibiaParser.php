@@ -14,17 +14,20 @@ class TibiaParser
      * @codeCoverageIgnore
      * @return juniorb2ss\TibiaParser\Crawlers\Crawler
      */
-    public function getCrawler()
+    protected function getCrawler()
     {
         return new Crawler;
     }
 
     /**
      * [player description]
-     * @return [type] [description]
+     * @codeCoverageIgnore
+     * @return \juniorb2ss\TibiaParser\Crawlers\PlayerCrawler
      */
-    public function player($name)
+    public function player()
     {
-        return new PlayerCrawler($this->getCrawler(), $name);
+        return new PlayerCrawler(
+            $this->getCrawler()
+        );
     }
 }
